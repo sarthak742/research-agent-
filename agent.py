@@ -4,7 +4,7 @@ import uuid
 import os
 from typing import AsyncGenerator, List, Dict, Any
 from groq import Groq
-from tavily import Client as TavilyClient
+from tavily import TavilyClient
 
 class ResearchAgent:
     def __init__(self, groq_key: str, tavily_key: str):
