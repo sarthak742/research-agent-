@@ -1,10 +1,561 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Research Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #14141f;
+            --surface-hover: #1a1a28;
+            --primary: #7c3aed;
+            --primary-glow: rgba(124, 58, 237, 0.3);
+            --secondary: #06b6d4;
+            --secondary-glow: rgba(6, 182, 212, 0.3);
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --error: #ef4444;
+            --thinking: #a78bfa;
+            --reading: #34d399;
+            --writing: #fb923c;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Syne', sans-serif;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            width: 40%;
+            padding: 2rem;
+            background: var(--surface);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-group label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 0.875rem 1rem;
+            background: var(--bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .depth-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .depth-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+        }
+
+        .depth-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .depth-btn:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--text);
+        }
+
+        .start-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary), #6d28d9);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            width: 60%;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .activity-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            background: var(--surface);
+            border-radius: 12px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 3px solid var(--primary);
+        }
+
+        .activity-card.thinking { border-left-color: var(--thinking); }
+        .activity-card.searching { border-left-color: var(--secondary); }
+        .activity-card.reading { border-left-color: var(--reading); }
+        .activity-card.writing { border-left-color: var(--writing); }
+        .activity-card.done { border-left-color: var(--success); }
+        .activity-card.error { border-left-color: var(--error); }
+
+        .activity-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-message {
+            font-size: 0.9375rem;
+            line-height: 1.5;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Report */
+        .report-container {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .report-container.visible {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .download-btn {
+            padding: 0.5rem 1rem;
+            background: var(--secondary);
+            border: none;
+            border-radius: 6px;
+            color: var(--bg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .download-btn:hover {
+            background: #0891b2;
+        }
+
+        .report-content {
+            line-height: 1.7;
+        }
+
+        .report-content h1, .report-content h2, .report-content h3 {
+            color: var(--text);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .report-content h1 { font-size: 1.75rem; }
+        .report-content h2 { font-size: 1.375rem; }
+        .report-content h3 { font-size: 1.125rem; }
+
+        .report-content p {
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .report-content ul, .report-content ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .report-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .report-content a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        .report-content a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--surface-hover);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.75rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .left-panel, .right-panel {
+                width: 100%;
+            }
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Research Agent</h1>
-    <p>Loading...</p>
+    <div class="container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="logo">
+                <div class="logo-icon">🔬</div>
+                <h1>Research Agent</h1>
+            </div>
+
+            <div class="input-group">
+                <label>Research Topic</label>
+                <input type="text" id="topic" placeholder="Enter topic to research..." />
+            </div>
+
+            <div class="input-group">
+                <label>Research Depth</label>
+                <div class="depth-selector">
+                    <button class="depth-btn active" data-depth="basic">Basic</button>
+                    <button class="depth-btn" data-depth="detailed">Detailed</button>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startBtn">Start Research</button>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="section-title">Activity Feed</div>
+            <div class="activity-feed" id="activityFeed">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🧠</div>
+                    <p>Enter a topic and click Start Research</p>
+                </div>
+            </div>
+
+            <div class="report-container" id="reportContainer">
+                <div class="report-header">
+                    <h2>Research Report</h2>
+                    <button class="download-btn" id="downloadBtn">Download .md</button>
+                </div>
+                <div class="report-content" id="reportContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentTopic = '';
+        let currentDepth = 'basic';
+        let researchId = null;
+        let reportContent = '';
+
+        // DOM Elements
+        const topicInput = document.getElementById('topic');
+        const depthBtns = document.querySelectorAll('.depth-btn');
+        const startBtn = document.getElementById('startBtn');
+        const activityFeed = document.getElementById('activityFeed');
+        const reportContainer = document.getElementById('reportContainer');
+        const reportContentEl = document.getElementById('reportContent');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // Depth selector
+        depthBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                depthBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentDepth = btn.dataset.depth;
+            });
+        });
+
+        // Icons mapping
+        const icons = {
+            thinking: '🧠',
+            searching: '🔍',
+            reading: '📖',
+            writing: '✍️',
+            done: '✅',
+            error: '⚠️'
+        };
+
+        // Add activity card
+        function addActivity(type, message) {
+            // Remove empty state if present
+            const emptyState = activityFeed.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            const card = document.createElement('div');
+            card.className = `activity-card ${type}`;
+            card.innerHTML = `
+                <span class="activity-icon">${icons[type] || '•'}</span>
+                <div class="activity-content">
+                    <div class="activity-message">${message}</div>
+                    <div class="activity-time">${new Date().toLocaleTimeString()}</div>
+                </div>
+            `;
+            activityFeed.appendChild(card);
+            activityFeed.scrollTop = activityFeed.scrollHeight;
+        }
+
+        // Start research
+        startBtn.addEventListener('click', async () => {
+            const topic = topicInput.value.trim();
+            if (!topic) {
+                topicInput.focus();
+                return;
+            }
+
+            currentTopic = topic;
+            startBtn.disabled = true;
+            startBtn.textContent = 'Researching...';
+
+            // Clear previous
+            activityFeed.innerHTML = '';
+            reportContainer.classList.remove('visible');
+            reportContent = '';
+
+            try {
+                // Start research
+                const res = await fetch('/research', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, depth: currentDepth })
+                });
+
+                const data = await res.json();
+                researchId = data.research_id;
+
+                // Stream events
+                const stream = await fetch(`/stream/${researchId}`);
+                const reader = stream.body.getReader();
+                const decoder = new TextDecoder();
+
+                let buffer = '';
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const event = JSON.parse(line.slice(6));
+                                addActivity(event.type, event.message);
+
+                                if (event.type === 'done' && event.report) {
+                                    reportContent = event.report;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+
+                // Fetch final report if not already received
+                if (!reportContent) {
+                    const reportRes = await fetch(`/report/${researchId}`);
+                    if (reportRes.ok) {
+                        const reportData = await reportRes.json();
+                        reportContent = reportData.report;
+                    }
+                }
+
+                if (reportContent) {
+                    reportContentEl.innerHTML = marked.parse(reportContent);
+                    reportContainer.classList.add('visible');
+                }
+
+            } catch (err) {
+                addActivity('error', 'Failed to start research: ' + err.message);
+            } finally {
+                startBtn.disabled = false;
+                startBtn.textContent = 'Start Research';
+            }
+        });
+
+        // Download report
+        downloadBtn.addEventListener('click', () => {
+            const blob = new Blob([reportContent], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentTopic.replace(/[^a-z0-9]/gi, '_')}_research.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
 </body>
 </html>
