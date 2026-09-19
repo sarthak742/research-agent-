@@ -1,0 +1,10 @@
+{
+  "topic": "Perovskite solar cells commercialization",
+  "sources": [
+    {"id": 1, "title": "Perovskite efficiency records", "url": "http://a", "content": "Laboratory perovskite solar cells have reached certified efficiencies above 26 percent, rivaling silicon."},
+    {"id": 2, "title": "Stability challenges", "url": "http://b", "content": "Moisture and heat degrade perovskite layers, and stability remains the main barrier to commercialization."},
+    {"id": 3, "title": "Tandem cells", "url": "http://c", "content": "Perovskite-silicon tandem cells push efficiency past 33 percent in the laboratory."},
+    {"id": 4, "title": "Market outlook", "url": "http://d", "content": "Several startups aim to ship perovskite modules commercially within a few years."}
+  ],
+  "report": "## Executive Summary\nPerovskite solar cells have reached efficiencies above 26 percent [1]. However, stability under moisture and heat remains the main barrier to commercialization [2].\n\n## Key Findings\n- Perovskite-silicon tandem cells exceed 33 percent efficiency in the laboratory [3].\n- Several startups aim to ship modules commercially within a few years [4].\n- Adoption will be widespread by next year in every country.\n\n## Limitations\nThe sources did not cover long-term field reliability data.\n\n## Sources\n[1] Perovskite efficiency records — http://a\n[2] Stability challenges — http://b\n[3] Tandem cells — http://c\n[4] Market outlook — http://d\n"
+}
